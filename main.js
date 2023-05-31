@@ -182,7 +182,7 @@ function draw() {
   let matAccumRotate0 = m4.multiply(rotateToPointZero, modelView);
   if(calculateSurfaceRotation() != null){
     console.log("matAccum0 is calculateSurfaceRotation - " + calculateSurfaceRotation())
-    matAccumRotate0 = m4.multiply(rotateToPointZero, getRotationMatrix(0, calculateSurfaceRotation(), 0) );
+    matAccumRotate0 = m4.multiply(rotateToPointZero, getRotationMatrix(0, 0, calculateSurfaceRotation()) );
   }
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
 

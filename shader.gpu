@@ -1,0 +1,105 @@
+
+// Vertex shader
+const vertexShaderSource = `
+attribute vec3 vertex;
+attribute vec3 normal;
+attribute vec2 textureCoords;
+
+uniform mat4 wInverseTranspose;
+uniform mat4 wMatrix;
+uniform vec3 LightWorldPosition;
+uniform vec3 ViewWorldPosition;
+uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelViewMatrix, ProjectionMatrix;
+uniform vec2 fPoint;
+uniform vec2 fScale;
+
+varying vec3 v_surfaceToView;
+varying vec3 v_surfaceToLight;
+varying vec3 v_normal;
+varying vec2 v_textureCoords;
+
+uniform float l;
+
+mat4 getScaleMat(vec3 s) {
+  return mat4(
+    s.x, 0.0, 0.0, 0.0,
+    0.0, s.y, 0.0, 0.0,
+    0.0, 0.0, s.z, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );
+}
+
+mat4 getTranslateMat(vec2 t) {
+  return mat4(
+    1.0, 0.0, 0.0, t.x,
+    0.0, 1.0, 0.0, t.y,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );
+}
+
+void main() {
+  vec4 vector4 = ModelViewMatrix * vec4(vertex,1.0);
+    gl_Position = ProjectionMatrix * vector4;
+
+    vec3 surfaceWorldPosition = (wMatrix * vec4(vertex, 1.0)).xyz;
+    v_surfaceToLight = LightWorldPosition - surfaceWorldPosition;
+    v_surfaceToView = ViewWorldPosition - surfaceWorldPosition;
+    v_normal = mat3(wInverseTranspose) * normal;
+
+    mat4 scaleMat = getScaleMat(vec3(fScale, .0));
+    mat4 translateMat = getTranslateMat(-fPoint);
+    mat4 translateBackMat = getTranslateMat(fPoint);
+
+    vec4 textureCoordTr =  translateMat * vec4(textureCoords, 0, 0);
+    vec4 textureCoordRotate = textureCoordTr * scaleMat;
+    vec4 textureCoordTrBack = textureCoordRotate * translateBackMat;
+
+    v_textureCoords = vec2(textureCoordTrBack);
+}`;
+
+
+// Fragment shader
+const fragmentShaderSource = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+   precision highp float;
+#else
+   precision mediump float;
+#endif
+
+uniform vec4 color;
+uniform vec3 lightDir;
+uniform sampler2D tmu;
+
+varying vec3 v_surfaceToView;
+varying vec3 v_surfaceToLight;
+varying vec3 v_normal;
+varying vec2 v_textureCoords;
+uniform float l;
+
+void main() {
+    float shininess = 100.0;
+    vec3 normal = normalize(v_normal);
+
+    vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+    vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+    vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+    
+    float dotDir = dot(surfaceToLightDirection, -lightDir);
+
+    float light = dot(normal, surfaceToLightDirection);
+    float specular = 0.0;
+    if (light > 0.0) {
+      specular = pow(dot(normal, halfVector), shininess);
+    }
+    
+    vec4 texture = texture2D(tmu, v_textureCoords);
+
+    gl_FragColor = texture * color;
+    if (l > 1.0){
+      gl_FragColor.rgb *= light;
+    }
+    
+    //gl_FragColor.rgb += specular;
+}`;

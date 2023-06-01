@@ -195,13 +195,13 @@ function draw() {
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
 
   //CGW
-  let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
-  // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
-  // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
-  // let sphereViewProjection = m4.multiply(projection, matAccum2sphere);
-    console.log("sphereRotatTranlatMatrix: " + sphereRotatTranlatMatrix)
-    gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, sphereRotatTranlatMatrix);
-    sphere.Draw();
+  // let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
+  // // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
+  // // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
+  // // let sphereViewProjection = m4.multiply(projection, matAccum2sphere);
+  //   console.log("sphereRotatTranlatMatrix: " + sphereRotatTranlatMatrix)
+  //   gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, sphereRotatTranlatMatrix);
+  //   sphere.Draw();
   //CGW
 
   // correct positioning of webcam texture
@@ -257,7 +257,7 @@ function draw() {
 
   // First bind and draw is for video from webcam
   gl.bindTexture(gl.TEXTURE_2D, textureWebCam);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+  gl.texImage2D(gl.TEXTURE_2D, 12, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
   gl.uniform1f(shProgram.iL, 0)
   background.Draw();
   gl.uniform1f(shProgram.iL, 10)
@@ -278,6 +278,17 @@ function draw() {
   surface.Draw();
 
   gl.colorMask(true, true, true, true);
+
+  //CGW
+  // let matAccum2sphere =  m4.multiply(translateToCenter2, moveModelCGWRotationMatrix(calculateSurfaceRotation()));
+  // let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
+  // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
+  // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
+    // console.log("sphereRotatTranlatMatrix: " + sphereViewProjection);
+  gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, m4.multiply(projection, moveModelCGWRotationMatrix(calculateSurfaceRotation())));
+  sphere.Draw();
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  //CGW
 }
 
 function CreateSurfaceData() {
@@ -540,6 +551,7 @@ function CreateWebCamTexture() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 12, gl.RGBA, gl.RGBA, gl.FLOAT, video);
 }
 
 
@@ -578,7 +590,7 @@ function createSphere(radius, latitudeBands, longitudeBands) {
     }
   }
 
-  console.log("VertexList is: " + positions);
+  // console.log("VertexList is: " + positions);
   return { vertexList: positions, normalsList: indices, textureList: null};
 }
 
@@ -754,7 +766,7 @@ function compassHeading( alpha, beta, gamma ) {
     compassHeading += 2 * Math.PI;
   }
 
-  console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
+  // console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
   return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
 }
 
@@ -771,9 +783,9 @@ function compassHeading( alpha, beta, gamma ) {
 let magnetometerData;
 let magSensor = new Magnetometer({ frequency: 10 }); 
 magSensor.addEventListener("reading", (e) => {
-  console.log(`Magnetic field along the X-axis ${magSensor.x}`);
-  console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
-  console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
+  // console.log(`Magnetic field along the X-axis ${magSensor.x}`);
+  // console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
+  // console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
   const alpha = magSensor.x;
   const beta = magSensor.y;
   const gamma = magSensor.z;
@@ -788,11 +800,11 @@ magSensor.start();
 // });
 
 function calculateSurfaceRotation() {
-  console.log("Its calculateSurfaceRotation function. magnetometerData = " + magnetometerData)
+  // console.log("Its calculateSurfaceRotation function. magnetometerData = " + magnetometerData)
   if (magnetometerData != null) {
     // Calculate rotation
     let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
-    console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
+    // console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
 
     return rotationData;
   }

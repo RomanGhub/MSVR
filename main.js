@@ -189,7 +189,7 @@ function draw() {
   //CGW
   // drawSphere();
   let modelViewProjectionSphere = moveModelCGWRotationMatrix(calculateSurfaceRotation());
-
+  console.log("modelViewProjectionSphere: " + modelViewProjectionSphere)
   gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjectionSphere);
   sphere.Draw();
 

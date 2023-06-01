@@ -195,12 +195,15 @@ function draw() {
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
 
   //CGW
-    let modelViewProjectionSphere = m4.multiply(matAccumRotate0,  moveModelCGWRotationMatrix(calculateSurfaceRotation()));
-    console.log("modelViewProjectionSphere: " + modelViewProjectionSphere)
-    gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjectionSphere);
+  let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
+  // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
+  // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
+  // let sphereViewProjection = m4.multiply(projection, matAccum2sphere);
+    console.log("sphereRotatTranlatMatrix: " + sphereRotatTranlatMatrix)
+    gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, sphereRotatTranlatMatrix);
     sphere.Draw();
   //CGW
-  
+
   // correct positioning of webcam texture
   let rotateToCenter = m4.axisRotation([0.0, 0.0, 1.0], Math.PI);
   let translateToCenter = m4.translation(2, 2, -10);

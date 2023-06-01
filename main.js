@@ -107,13 +107,13 @@ function Model(name) {
   this.BufferData = function ({ vertexList, normalsList, textureList }) {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexList), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexList), gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.iNormalsBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalsList), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalsList), gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.iTextureBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureList), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureList), gl.STATIC_DRAW);
 
     this.count = vertexList.length / 3;
   }
@@ -185,7 +185,15 @@ function draw() {
   // if (!tempview) { tempview = modelView }
   // console.log("modelView : " + modelView)
 
-  drawSphere();
+
+  //CGW
+  // drawSphere();
+  let modelViewProjectionSphere = moveModelCGWRotationMatrix(calculateSurfaceRotation());
+
+  gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjectionSphere);
+  sphere.Draw();
+
+  //CGW
 
   let rotateToPointZero = m4.axisRotation([0.707, 0.707, 0], 0.7);
   let translateToPointZero = m4.translation(0, 0, -10);
@@ -353,6 +361,9 @@ function initGL() {
 
   surface = new Model('Surface');
   surface.BufferData(CreateSurfaceData());
+  
+  sphere = new Model('Sphere');
+  sphere.BufferData(createSphere(1, 30, 30));
 
   stereoCam = new StereoCamera(// "If something doesn't work - try to change numbers a bit"
     2000,
@@ -442,8 +453,8 @@ function init() {
     return;
   }
   try {
-    initGL();
-    initGLSphere();  // initialize the WebGL graphics context
+    initGL();  // initialize the WebGL graphics context
+    //    initGLSphere();
   }
   catch (e) {
     document.getElementById("canvas-holder").innerHTML =
@@ -564,79 +575,82 @@ function createSphere(radius, latitudeBands, longitudeBands) {
     }
   }
 
-  return { positions, indices };
+  console.log("VertexList is: " + positions);
+  return { vertexList: positions, normalsList: indices, textureList: null};
 }
 
 
 let sphereProg;
-function initGLSphere() {
-  sphereProg = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+let sphere;
+// function initGLSphere() {
+//   sphereProg = createProgram(gl, vertexShaderSource, fragmentShaderSource);
 
-  let shProgram = new ShaderProgram('Basic', sphereProg);
-  shProgram.Use();
+//   let sphProgram = new ShaderProgram('Basic', sphereProg);
+//   shpProgram.Use();
 
-  shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
-  shProgram.iModelViewMatrix = gl.getUniformLocation(prog, "ModelViewMatrix");
-  shProgram.iProjectionMatrix = gl.getUniformLocation(prog, "ProjectionMatrix");
+//   sphProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
+//   sphProgram.iModelViewMatrix = gl.getUniformLocation(prog, "ModelViewMatrix");
+//   sphProgram.iProjectionMatrix = gl.getUniformLocation(prog, "ProjectionMatrix");
 
-  shProgram.iAttribVertex = gl.getAttribLocation(prog, "vertex");
-  shProgram.iNormalsVertex = gl.getAttribLocation(prog, "normal");
-  shProgram.iColor = gl.getUniformLocation(prog, "color");
+//   sphProgram.iAttribVertex = gl.getAttribLocation(prog, "vertex");
+//   sphProgram.iNormalsVertex = gl.getAttribLocation(prog, "normal");
+//   sphProgram.iColor = gl.getUniformLocation(prog, "color");
 
-  shProgram.iWInverseTranspose = gl.getUniformLocation(prog, "wInverseTranspose");
-  shProgram.iWMatrix = gl.getUniformLocation(prog, "wMatrix");
+//   sphProgram.iWInverseTranspose = gl.getUniformLocation(prog, "wInverseTranspose");
+//   sphProgram.iWMatrix = gl.getUniformLocation(prog, "wMatrix");
 
-  shProgram.iViewWorldPosition = gl.getUniformLocation(prog, "ViewWorldPosition");
-  // shProgram.iLightWorldPosition = gl.getUniformLocation(prog, "LightWorldPosition");
-  // shProgram.iLightDir = gl.getUniformLocation(prog, "lightDir");
-  // shProgram.iL = gl.getUniformLocation(prog, "l");
+//   sphProgram.iViewWorldPosition = gl.getUniformLocation(prog, "ViewWorldPosition");
+//   sphProgram.iLightWorldPosition = gl.getUniformLocation(prog, "LightWorldPosition");
+//   sphProgram.iLightDir = gl.getUniformLocation(prog, "lightDir");
+//   sphProgram.iL = gl.getUniformLocation(prog, "l");
 
-  shProgram.iTextureCoords = gl.getAttribLocation(prog, 'textureCoords');
-  shProgram.iTMU = gl.getUniformLocation(prog, 'tmu');
+//   sphProgram.iTextureCoords = gl.getAttribLocation(prog, 'textureCoords');
+//   sphProgram.iTMU = gl.getUniformLocation(prog, 'tmu');
 
-  shProgram.iFScale = gl.getUniformLocation(prog, 'fScale');
-  shProgram.iFPoint = gl.getUniformLocation(prog, 'fPoint');
+//   sphProgram.iFScale = gl.getUniformLocation(prog, 'fScale');
+//   sphProgram.iFPoint = gl.getUniformLocation(prog, 'fPoint');
 
-  surface = new Model('Sphere');
-  surface.BufferData(CreateSurfaceData());
+//   sphere = new Model('Sphere');
+//   sphere.BufferData(createSphere(1.0, 30, 30));
 
-  LoadTexture();
+//   LoadTexture();
 
-  gl.enable(gl.DEPTH_TEST);
-}
+//   gl.enable(gl.DEPTH_TEST);
+// }
 
-function drawSphere() {
-  const sphere = createSphere(1.0, 30, 30);
+// function drawSphere() {
+//   const sphere = createSphere(1.0, 30, 30);
 
-  const positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.positions), gl.STATIC_DRAW);
+//   const positionBuffer = gl.createBuffer();
+//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+//   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.positions), gl.STATIC_DRAW);
 
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), gl.STATIC_DRAW);
+//   const indexBuffer = gl.createBuffer();
+//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+//   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), gl.STATIC_DRAW);
 
-  const positionAttributeLocation = gl.getAttribLocation(prog, "vertex");
-  gl.enableVertexAttribArray(positionAttributeLocation);
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+//   const positionAttributeLocation = gl.getAttribLocation(prog, "vertex");
+//   gl.enableVertexAttribArray(positionAttributeLocation);
+//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+//   gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+//   gl.clearColor(0.0, 0.0, 0.0, 1.0);
+//   gl.clear(gl.COLOR_BUFFER_BIT);
+//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-  // gl.getUniformLocation
+//   // gl.getUniformLocation
 
-  //
+//   //
   // sphereProg
-  const rotationMatrix = moveModelCGWRotationMatrix(calculateSurfaceRotation());
+/*  const rotationMatrix = moveModelCGWRotationMatrix(calculateSurfaceRotation());
   const rotationUniformLocation = gl.getUniformLocation(sphereProg, "ModelViewMatrix");
+  console.log("rotationUniformLocation in DrawSphere: " + rotationUniformLocation)
   gl.uniformMatrix4fv(rotationUniformLocation, false, rotationMatrix);
   //
 
   gl.drawElements(gl.TRIANGLES, sphere.indices.length, gl.UNSIGNED_SHORT, 0);
-
-}
+*/
+// }
 
 function moveModelCGWRotationMatrix(compassHeadingM){
   const centerX = 0;

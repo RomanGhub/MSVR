@@ -377,7 +377,7 @@ function initGL() {
   surface.BufferData(CreateSurfaceData());
   
   sphere = new Model('Sphere');
-  sphere.BufferData(createSphere(1, 30, 30));
+  sphere.BufferData(createSphere(0.8, 50, 50));
 
   stereoCam = new StereoCamera(// "If something doesn't work - try to change numbers a bit"
     2000,
@@ -673,7 +673,7 @@ function moveModelCGWRotationMatrix(compassHeadingM){
   const centerZ = 0;
   
   // Define the radius of circular motion
-  const radius = 0.75; // Adjust the radius as needed
+  const radius = 1.5; // Adjust the radius as needed
   
   // Initialize the angle
   let angle = compassHeadingM;

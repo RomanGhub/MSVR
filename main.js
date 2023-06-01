@@ -186,14 +186,7 @@ function draw() {
   // console.log("modelView : " + modelView)
 
 
-  //CGW
-  // drawSphere();
-  let modelViewProjectionSphere = moveModelCGWRotationMatrix(calculateSurfaceRotation());
-  console.log("modelViewProjectionSphere: " + modelViewProjectionSphere)
-  gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjectionSphere);
-  sphere.Draw();
 
-  //CGW
 
   let rotateToPointZero = m4.axisRotation([0.707, 0.707, 0], 0.7);
   let translateToPointZero = m4.translation(0, 0, -10);
@@ -201,6 +194,13 @@ function draw() {
   let matAccumRotate0 = m4.multiply(rotateToPointZero, modelView);
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
 
+  //CGW
+    let modelViewProjectionSphere = m4.multiply(matAccumRotate0,  moveModelCGWRotationMatrix(calculateSurfaceRotation()));
+    console.log("modelViewProjectionSphere: " + modelViewProjectionSphere)
+    gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjectionSphere);
+    sphere.Draw();
+  //CGW
+  
   // correct positioning of webcam texture
   let rotateToCenter = m4.axisRotation([0.0, 0.0, 1.0], Math.PI);
   let translateToCenter = m4.translation(2, 2, -10);

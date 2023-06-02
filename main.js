@@ -15,6 +15,8 @@ let pannerNode;
 let audioElement;
 let playButton;
 let listener;
+let sphere;
+let SphereTexture;
 
 let point = { u: 200, v: 200 };
 
@@ -132,7 +134,11 @@ function Model(name) {
     gl.enableVertexAttribArray(shProgram.iTextureCoords);
     gl.vertexAttribPointer(shProgram.iTextureCoords, 2, gl.FLOAT, false, 0, 0);
 
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.count);
+    if (this.name == "Sphere") {
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, this.count);
+    } else {
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.count);
+    }
   }
 }
 
@@ -172,7 +178,6 @@ function ShaderProgram(name, program) {
  * (Note that the use of the above drawPrimitive function is not an efficient
  * way to draw with WebGL.  Here, the geometry is so simple that it doesn't matter.)
  */
-// let tempview;
 function draw() {
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -182,27 +187,12 @@ function draw() {
 
   /* Get the view matrix from the SimpleRotator object.*/
   let modelView = spaceball.getViewMatrix();
-  // if (!tempview) { tempview = modelView }
-  // console.log("modelView : " + modelView)
-
-
-
 
   let rotateToPointZero = m4.axisRotation([0.707, 0.707, 0], 0.7);
   let translateToPointZero = m4.translation(0, 0, -10);
 
   let matAccumRotate0 = m4.multiply(rotateToPointZero, modelView);
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
-
-  //CGW
-  // let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
-  // // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
-  // // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
-  // // let sphereViewProjection = m4.multiply(projection, matAccum2sphere);
-  //   console.log("sphereRotatTranlatMatrix: " + sphereRotatTranlatMatrix)
-  //   gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, sphereRotatTranlatMatrix);
-  //   sphere.Draw();
-  //CGW
 
   // correct positioning of webcam texture
   let rotateToCenter = m4.axisRotation([0.0, 0.0, 1.0], Math.PI);
@@ -257,7 +247,7 @@ function draw() {
 
   // First bind and draw is for video from webcam
   gl.bindTexture(gl.TEXTURE_2D, textureWebCam);
-  gl.texImage2D(gl.TEXTURE_2D, 12, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
   gl.uniform1f(shProgram.iL, 0)
   background.Draw();
   gl.uniform1f(shProgram.iL, 10)
@@ -280,11 +270,10 @@ function draw() {
   gl.colorMask(true, true, true, true);
 
   //CGW
-  // let matAccum2sphere =  m4.multiply(translateToCenter2, moveModelCGWRotationMatrix(calculateSurfaceRotation()));
-  // let sphereRotatTranlatMatrix = m4.multiply(moveModelCGWRotationMatrix(calculateSurfaceRotation()), modelView);
-  // let modelViewProjectionSphere = m4.multiply(projection, matAccum1Sphere);
-  // let matAccum2sphere = m4.multiply(translateToPointZero, matAccum1Sphere);
-    // console.log("sphereRotatTranlatMatrix: " + sphereViewProjection);
+  gl.bindTexture(gl.TEXTURE_2D, SphereTexture);
+  gl.uniform4fv(shProgram.iColor, [1, 1, 1, 1]);
+  gl.uniform1f(shProgram.iL, 10)
+  gl.uniform1i(shProgram.iTexture, 0);
   gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, m4.multiply(projection, moveModelCGWRotationMatrix(calculateSurfaceRotation())));
   sphere.Draw();
   gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -377,7 +366,8 @@ function initGL() {
   surface.BufferData(CreateSurfaceData());
   
   sphere = new Model('Sphere');
-  sphere.BufferData(createSphere(0.8, 50, 50));
+  sphere.BufferData(createSphere(1, 60, 60));
+  LoadSphereTexture();
 
   stereoCam = new StereoCamera(// "If something doesn't work - try to change numbers a bit"
     2000,
@@ -388,17 +378,15 @@ function initGL() {
     20000
   );
 
-  // references - lection and https://developer.mozilla.org/ru/docs/Web/API/MediaDevices/getUserMedia
   // Set to global video variable (or define and initialize variable globally(not good for consistency)).
   video = document.createElement('video');
   var constraints = { video: true };
   navigator.mediaDevices.getUserMedia(constraints).then(stream => {
     video.srcObject = stream;
-    video.onloadedmetadata = function (e) { // video.autoplay is shaggy, this approach is better(?)
+    video.onloadedmetadata = function (e) {
       video.play();
     };
-  }).catch(function (err) { console.log(err.name + ": " + err.message); });
-  // always check for errors at the end.
+  }).catch(function (err) { console.log(err.name + ": " + err.message); });// always check for errors at the end.
 
   gl.enable(gl.DEPTH_TEST);
 
@@ -551,16 +539,45 @@ function CreateWebCamTexture() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texImage2D(gl.TEXTURE_2D, 12, gl.RGBA, gl.RGBA, gl.FLOAT, video);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.FLOAT, video);
 }
 
-
-
-
 // CGW
+function LoadSphereTexture() {
+  SphereTexture = gl.createTexture();
+  let image = new Image();
+  image.src = 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?cs=srgb&dl=pexels-yurii-hlei-1545743.jpg&fm=jpg';
+  image.crossOrigin = 'anonymous';
+
+  image.onload = () => {
+    // Make the "texture object" be the active texture object. Only the
+    // active object can be modified or used. This also declares that the
+    // texture object will hold a texture of type gl.TEXTURE_2D. The type
+    // of the texture, gl.TEXTURE_2D, can't be changed after this initialization.
+    gl.bindTexture(gl.TEXTURE_2D, SphereTexture);
+
+    // Set parameters of the texture object. 
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+
+    // Tell gl to flip the orientation of the image on the Y axis. Most
+    // images have their origin in the upper-left corner. WebGL expects
+    // the origin of an image to be in the lower-left corner.
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+
+    // Store in the image in the GPU's texture object
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    draw();
+  };
+}
+
 function createSphere(radius, latitudeBands, longitudeBands) {
   const positions = [];
   const indices = [];
+  const textureList = [];
 
   for (let lat = 0; lat <= latitudeBands; lat++) {
     const theta = (lat * Math.PI) / latitudeBands;
@@ -577,6 +594,7 @@ function createSphere(radius, latitudeBands, longitudeBands) {
       const z = sinPhi * sinTheta;
 
       positions.push(radius * x, radius * y, radius * z);
+      textureList.push(long / longitudeBands, lat / latitudeBands);
     }
   }
 
@@ -591,81 +609,8 @@ function createSphere(radius, latitudeBands, longitudeBands) {
   }
 
   // console.log("VertexList is: " + positions);
-  return { vertexList: positions, normalsList: indices, textureList: null};
+  return { vertexList: positions, normalsList: indices, textureList: textureList};
 }
-
-
-let sphereProg;
-let sphere;
-// function initGLSphere() {
-//   sphereProg = createProgram(gl, vertexShaderSource, fragmentShaderSource);
-
-//   let sphProgram = new ShaderProgram('Basic', sphereProg);
-//   shpProgram.Use();
-
-//   sphProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
-//   sphProgram.iModelViewMatrix = gl.getUniformLocation(prog, "ModelViewMatrix");
-//   sphProgram.iProjectionMatrix = gl.getUniformLocation(prog, "ProjectionMatrix");
-
-//   sphProgram.iAttribVertex = gl.getAttribLocation(prog, "vertex");
-//   sphProgram.iNormalsVertex = gl.getAttribLocation(prog, "normal");
-//   sphProgram.iColor = gl.getUniformLocation(prog, "color");
-
-//   sphProgram.iWInverseTranspose = gl.getUniformLocation(prog, "wInverseTranspose");
-//   sphProgram.iWMatrix = gl.getUniformLocation(prog, "wMatrix");
-
-//   sphProgram.iViewWorldPosition = gl.getUniformLocation(prog, "ViewWorldPosition");
-//   sphProgram.iLightWorldPosition = gl.getUniformLocation(prog, "LightWorldPosition");
-//   sphProgram.iLightDir = gl.getUniformLocation(prog, "lightDir");
-//   sphProgram.iL = gl.getUniformLocation(prog, "l");
-
-//   sphProgram.iTextureCoords = gl.getAttribLocation(prog, 'textureCoords');
-//   sphProgram.iTMU = gl.getUniformLocation(prog, 'tmu');
-
-//   sphProgram.iFScale = gl.getUniformLocation(prog, 'fScale');
-//   sphProgram.iFPoint = gl.getUniformLocation(prog, 'fPoint');
-
-//   sphere = new Model('Sphere');
-//   sphere.BufferData(createSphere(1.0, 30, 30));
-
-//   LoadTexture();
-
-//   gl.enable(gl.DEPTH_TEST);
-// }
-
-// function drawSphere() {
-//   const sphere = createSphere(1.0, 30, 30);
-
-//   const positionBuffer = gl.createBuffer();
-//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-//   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.positions), gl.STATIC_DRAW);
-
-//   const indexBuffer = gl.createBuffer();
-//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-//   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), gl.STATIC_DRAW);
-
-//   const positionAttributeLocation = gl.getAttribLocation(prog, "vertex");
-//   gl.enableVertexAttribArray(positionAttributeLocation);
-//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-//   gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-//   gl.clearColor(0.0, 0.0, 0.0, 1.0);
-//   gl.clear(gl.COLOR_BUFFER_BIT);
-//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-//   // gl.getUniformLocation
-
-//   //
-  // sphereProg
-/*  const rotationMatrix = moveModelCGWRotationMatrix(calculateSurfaceRotation());
-  const rotationUniformLocation = gl.getUniformLocation(sphereProg, "ModelViewMatrix");
-  console.log("rotationUniformLocation in DrawSphere: " + rotationUniformLocation)
-  gl.uniformMatrix4fv(rotationUniformLocation, false, rotationMatrix);
-  //
-
-  gl.drawElements(gl.TRIANGLES, sphere.indices.length, gl.UNSIGNED_SHORT, 0);
-*/
-// }
 
 function moveModelCGWRotationMatrix(compassHeadingM){
   const centerX = 0;
@@ -700,45 +645,6 @@ function moveModelCGWRotationMatrix(compassHeadingM){
   return rotationMatrix;
 }
 
-//PA2
-function getRotationMatrix(alpha, beta, gamma) {
-
-  var _x = beta; // beta value
-  var _y = gamma; // gamma value
-  var _z = alpha; // alpha value
-
-  var cX = Math.cos(_x);
-  var cY = Math.cos(_y);
-  var cZ = Math.cos(_z);
-  var sX = Math.sin(_x);
-  var sY = Math.sin(_y);
-  var sZ = Math.sin(_z);
-
-  //
-  // ZXY rotation matrix construction.
-  //
-
-  var m11 = cZ * cY - sZ * sX * sY;
-  var m12 = - cX * sZ;
-  var m13 = cY * sZ * sX + cZ * sY;
-
-  var m21 = cY * sZ + cZ * sX * sY;
-  var m22 = cZ * cX;
-  var m23 = sZ * sY - cZ * cY * sX;
-
-  var m31 = - cX * sY;
-  var m32 = sX;
-  var m33 = cX * cY;
-
-  return [
-    m11, m12, m13, 0,
-    m21, m22, m23, 0,
-    m31, m32, m33, 0, 0, 0, 0, 1
-  ];
-
-};
-var degtorad = Math.PI / 180; // Degree-to-Radian conversion
-
 function compassHeading( alpha, beta, gamma ) {
 
   var _x = beta  ? beta  * degtorad : 0; // beta value
@@ -766,46 +672,24 @@ function compassHeading( alpha, beta, gamma ) {
     compassHeading += 2 * Math.PI;
   }
 
-  // console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
   return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
 }
 
-
-// let accelerometerData;
-// let surfaceRotation;
-//It uses magnetometer data as well, and works, but I need ONLY magnetometer data.
-// window.addEventListener('deviceorientation', (e) => {
-//   magnetometerData = e;
-//   // calculateSurfaceRotation();
-// });
 //60 times per second seems reasonable // turned out that NO - Maximum allowed frequency value for this sensor type is 10 Hz.
 // reference: https://developer.mozilla.org/en-US/docs/Web/API/Magnetometer
 let magnetometerData;
 let magSensor = new Magnetometer({ frequency: 10 }); 
 magSensor.addEventListener("reading", (e) => {
-  // console.log(`Magnetic field along the X-axis ${magSensor.x}`);
-  // console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
-  // console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
   const alpha = magSensor.x;
   const beta = magSensor.y;
   const gamma = magSensor.z;
   magnetometerData = [alpha, beta, gamma];
 });
 magSensor.start();
-//// Just in case my variant is 1 and not 2
-// // Event listener for accelerometer sensor readings
-// window.addEventListener('devicemotion', (e) => {
-//   accelerometerData = e;
-//   // calculateSurfaceRotation();
-// });
 
 function calculateSurfaceRotation() {
-  // console.log("Its calculateSurfaceRotation function. magnetometerData = " + magnetometerData)
   if (magnetometerData != null) {
     // Calculate rotation
-    let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
-    // console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
-
-    return rotationData;
+    return compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
   }
 }

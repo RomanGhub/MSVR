@@ -446,8 +446,9 @@ function toggleFilter() {
 
   if (filterEnabled) {
     // Enable the filter
-    pannerNode.connect(filterNode);
+    pannerNode.disconnect();
     filterNode.connect(audioContext.destination);
+    pannerNode.connect(filterNode);
   } else {
     // Disable the filter
     filterNode.disconnect();

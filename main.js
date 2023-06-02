@@ -407,10 +407,10 @@ function initGL() {
 
   gl.enable(gl.DEPTH_TEST);
 
-  audioElement = document.getElementById('audioElement'); // HTML audio element
-  playButton = document.getElementById('playButton');
+  const audioElement = document.getElementById("audioElement");
+  const playButton = audioElement.querySelector("button[aria-label='Play']");
 
-  playButton.addEventListener('click', () => {
+  // playButton.addEventListener('click', () => {
     if (!audioContext) {
       let AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContext = new AudioContext();
@@ -436,8 +436,8 @@ function initGL() {
       sourceNode.connect(pannerNode);
       pannerNode.connect(audioContext.destination);
     }
-    audioElement.play();
-  });
+    // audioElement.play();
+  // });
 }
 
 function toggleFilter() {

@@ -408,9 +408,8 @@ function initGL() {
   gl.enable(gl.DEPTH_TEST);
 
   const audioElement = document.getElementById("audioElement");
-  const playButton = audioElement.querySelector("button[aria-label='Play']");
-
-  // playButton.addEventListener('click', () => {
+  
+  audioElement.addEventListener('play', () => {
     if (!audioContext) {
       let AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContext = new AudioContext();
@@ -436,8 +435,8 @@ function initGL() {
       sourceNode.connect(pannerNode);
       pannerNode.connect(audioContext.destination);
     }
-    // audioElement.play();
-  // });
+    audioElement.play();
+  });
 }
 
 function toggleFilter() {

@@ -9,14 +9,16 @@ let video;                      // Object holding video stream from camera
 let stereoCam;                  // Object holding stereo camera calculation parameters
 let textureWebCam;              // Texture to optimize convertation from png to bmp and so on
 let texture_object;             // Texture object holds a texture of type gl.TEXTURE_2D for surface
+let magnetometerData;           // Object that holds data from magnetometer
 let audioContext;
 let sourceNode;
 let pannerNode;
+let filterNode;
 let audioElement;
 let playButton;
 let listener;
 let sphere;
-let SphereTexture;
+let sphereTexture;
 
 let point = { u: 200, v: 200 };
 
@@ -270,7 +272,7 @@ function draw() {
   gl.colorMask(true, true, true, true);
 
   //CGW
-  gl.bindTexture(gl.TEXTURE_2D, SphereTexture);
+  gl.bindTexture(gl.TEXTURE_2D, sphereTexture);
   gl.uniform4fv(shProgram.iColor, [1, 1, 1, 1]);
   gl.uniform1f(shProgram.iL, 10)
   gl.uniform1i(shProgram.iTexture, 0);
@@ -404,6 +406,59 @@ function initGL() {
   LoadTexture();
 
   gl.enable(gl.DEPTH_TEST);
+
+  audioElement = document.getElementById('audioElement'); // HTML audio element
+  playButton = document.getElementById('playButton');
+
+  playButton.addEventListener('click', () => {
+    if (!audioContext) {
+      let AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContext = new AudioContext();
+      listener = audioContext.listener;
+
+      listener.positionX.value = 0;
+      listener.positionY.value = 0;
+      listener.positionZ.value = -5;
+      listener.forwardX.value = 0;
+      listener.forwardY.value = 0;
+      listener.forwardZ.value = -1;
+
+      sourceNode = audioContext.createMediaElementSource(audioElement);
+      pannerNode = audioContext.createPanner();
+      // Connect audio nodes and set up spatial audio properties
+
+      //filter
+      // Create a BiquadFilterNode
+      filterNode = audioContext.createBiquadFilter();
+      filterNode.type = "highpass"; // Set filter type to highpass
+      filterNode.frequency.value = 5000; // Set cutoff frequency
+      filterNode.Q.value = 1; // Set resonance/Q value
+      //
+
+      //without filter
+      // sourceNode.connect(pannerNode);
+      // pannerNode.connect(audioContext.destination);
+      //with filter
+      sourceNode.connect(pannerNode);
+      pannerNode.connect(filterNode);
+      filterNode.connect(audioContext.destination)
+    }
+    audioElement.play();
+    
+  });
+}
+
+function toggleFilter() {
+  const checkbox = document.getElementById('filterCheckbox');
+  const filterEnabled = checkbox.checked;
+
+  if (filterEnabled) {
+    // Enable the filter
+    filterNode.connect(audioContext.destination);
+  } else {
+    // Disable the filter
+    filterNode.disconnect();
+  }
 }
 
 /* Creates a program for use in the WebGL context gl, and returns the
@@ -544,7 +599,7 @@ function CreateWebCamTexture() {
 
 // CGW
 function LoadSphereTexture() {
-  SphereTexture = gl.createTexture();
+  sphereTexture = gl.createTexture();
   let image = new Image();
   image.src = 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?cs=srgb&dl=pexels-yurii-hlei-1545743.jpg&fm=jpg';
   image.crossOrigin = 'anonymous';
@@ -554,7 +609,7 @@ function LoadSphereTexture() {
     // active object can be modified or used. This also declares that the
     // texture object will hold a texture of type gl.TEXTURE_2D. The type
     // of the texture, gl.TEXTURE_2D, can't be changed after this initialization.
-    gl.bindTexture(gl.TEXTURE_2D, SphereTexture);
+    gl.bindTexture(gl.TEXTURE_2D, sphereTexture);
 
     // Set parameters of the texture object. 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -630,7 +685,7 @@ function moveModelCGWRotationMatrix(compassHeadingM){
   if(pannerNode != undefined){
   pannerNode.setPosition(objectX, objectY, objectZ); // Update the position of the audio source
   pannerNode.setOrientation(0, 0, -1); // Set the orientation of the audio source
-  pannerNode.distanceModel = 'linear'; // Change the distance model if needed
+  // pannerNode.distanceModel = 'linear'; // Change the distance model if needed
   }
 
   let rotationMatrix = new Float32Array([
@@ -677,7 +732,6 @@ function compassHeading( alpha, beta, gamma ) {
 
 //60 times per second seems reasonable // turned out that NO - Maximum allowed frequency value for this sensor type is 10 Hz.
 // reference: https://developer.mozilla.org/en-US/docs/Web/API/Magnetometer
-let magnetometerData;
 let magSensor = new Magnetometer({ frequency: 10 }); 
 magSensor.addEventListener("reading", (e) => {
   const alpha = magSensor.x;

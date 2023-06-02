@@ -1,28 +1,37 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
 
-
-<title>CGW</title>
-<style>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CGW</title>
+  <style>
     body {
-        background-color: #EEEEEE;
+      background-color: #EEEEEE;
     }
-</style>
+    input.larger {
+        width: 30px;
+        height: 30px;
+    }
+    .bigger {
+      font-size: 24px;
+    }
+  </style>
 
-<script src="./Utils/trackball-rotator.js"></script>
-<script src="./Utils/m4.js"></script>
-<script src="./shader.gpu"></script>
-<script src="./main.js"></script>
-<script src="./constants.js"></script>
+  <script src="./Utils/trackball-rotator.js"></script>
+  <script src="./Utils/m4.js"></script>
+  <script src="./shader.gpu"></script>
+  <script src="./main.js"></script>
+  <script src="./constants.js"></script>
 
 </head>
+
 <body onload="init()">
 
-<h2>Virich cyclic surface</h2>
-<p id="message">Drag your mouse on the figure to rotate it.<br>
-(On a touch screen, you can use your finger.)</p>
+  <h2>Virich cyclic surface</h2>
+  <p id="message">Drag your mouse on the figure to rotate it.<br>
+    (On a touch screen, you can use your finger.)</p>
 
-<p>
+  <p>
     <label for="eyeSeparation">Eye Separation:</label>
     <input id="eyeSeparation" value="70" type="range" min="0" max="200" step="2" onchange="reDraw()" /><br>
     <label for="fieldOfView">Field Of View:</label>
@@ -31,11 +40,18 @@
     <input id="nearClipping" value="5" type="range" min="-10" max="10" step="0.5" onchange="reDraw()" /><br>
     <label for="Convergence">Convergence:</label>
     <input id="Convergence" value="2000" type="range" min="100" max="3000" step="100" onchange="reDraw()" /><br>
-</p>
+    <!-- controls -->
+    <audio id="audioElement" src="vona.mp3" controls></audio>
+    <button id="playButton"> Play</button><br>
+    <label for="filterCheckbox" class="bigger">Enable Filter</label>
+    <input type="checkbox" id="filterCheckbox" class="larger" onchange="toggleFilter()">
+  </p>
 
-<div id="canvas-holder">
-   <canvas width="600" height="600" id="webglcanvas" style="background-color:red"></canvas>
-</div>
+  <div id="canvas-holder">
+    <canvas width="600" height="600" id="webglcanvas" style="background-color:red"></canvas>
+  </div>
 
 
-</body></html>
+</body>
+
+</html>

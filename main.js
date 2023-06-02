@@ -368,7 +368,7 @@ function initGL() {
   surface.BufferData(CreateSurfaceData());
   
   sphere = new Model('Sphere');
-  sphere.BufferData(createSphere(1, 60, 60));
+  sphere.BufferData(createSphere(1, 70, 70));
   LoadSphereTexture();
 
   stereoCam = new StereoCamera(// "If something doesn't work - try to change numbers a bit"
@@ -454,10 +454,12 @@ function toggleFilter() {
 
   if (filterEnabled) {
     // Enable the filter
+    pannerNode.connect(filterNode);
     filterNode.connect(audioContext.destination);
   } else {
     // Disable the filter
     filterNode.disconnect();
+    pannerNode.connect(audioContext.destination)
   }
 }
 

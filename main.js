@@ -618,10 +618,10 @@ function moveModelCGWRotationMatrix(compassHeadingM){
   const centerZ = 0;
   
   // Define the radius of circular motion
-  const radius = 1.5; // Adjust the radius as needed
+  const radius = 3; // Adjust the radius as needed
   
   // Initialize the angle
-  let angle = compassHeadingM;
+  let angle = compassHeadingM / 4;
   
   const objectX = centerX + Math.cos(angle) * radius;
   const objectY = centerY;
@@ -646,7 +646,7 @@ function moveModelCGWRotationMatrix(compassHeadingM){
 }
 
 function compassHeading( alpha, beta, gamma ) {
-
+  var degtorad = Math.PI / 180;
   var _x = beta  ? beta  * degtorad : 0; // beta value
   var _y = gamma ? gamma * degtorad : 0; // gamma value
   var _z = alpha ? alpha * degtorad : 0; // alpha value

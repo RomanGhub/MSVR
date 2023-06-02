@@ -425,26 +425,18 @@ function initGL() {
 
       sourceNode = audioContext.createMediaElementSource(audioElement);
       pannerNode = audioContext.createPanner();
-      // Connect audio nodes and set up spatial audio properties
 
-      //filter
+      // Connect audio nodes and set up spatial audio properties
       // Create a BiquadFilterNode
       filterNode = audioContext.createBiquadFilter();
       filterNode.type = "highpass"; // Set filter type to highpass
-      filterNode.frequency.value = 5000; // Set cutoff frequency
+      filterNode.frequency.value = 7777; // Set cutoff frequency
       filterNode.Q.value = 1; // Set resonance/Q value
-      //
 
-      //without filter
-      // sourceNode.connect(pannerNode);
-      // pannerNode.connect(audioContext.destination);
-      //with filter
       sourceNode.connect(pannerNode);
-      pannerNode.connect(filterNode);
-      filterNode.connect(audioContext.destination)
+      pannerNode.connect(audioContext.destination);
     }
     audioElement.play();
-    
   });
 }
 

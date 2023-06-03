@@ -626,9 +626,10 @@ function calculateSurfaceRotation() {
   if (magnetometerData != null) {
     // Calculate rotation
     let rotationData =  Math.atan2(magnetometerData[1], magnetometerData[0]) * (180 / Math.PI) -90;
-    // let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
-    console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
+    // -90 to convert from north facing east to true north
+    rotationData = (rotationData + 360) % 360 -90; // Convert from -180+180 to 0 360
+    // console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
 
-    return getRotationMatrix(null, null, rotationData);
+    return getRotationMatrix(null, null, rotationData); // rotate only on 1 axis
   }
 }

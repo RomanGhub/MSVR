@@ -629,6 +629,6 @@ function calculateSurfaceRotation() {
     // let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
     console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
 
-    return getRotationMatrix(rotationData);
+    return getRotationMatrix(null, null, rotationData);
   }
 }

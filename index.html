@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>PA1</title>
+  <style>
+    body {
+      background-color: #EEEEEE;
+      display: flex; /* Use flexbox for layout */
+      align-items: center; /* Center vertically */
+      justify-content: center; /* Center horizontally */
+    }
+
+    #container {
+      display: flex; /* Use flexbox for layout */
+    }
+
+    #canvas-holder {
+      flex: 1; /* Take up remaining space */
+    }
+
+    #inputs {
+      flex: 1; /* Take up remaining space */
+      margin-left: 20px; /* Add some spacing between canvas and inputs */
+    }
+  </style>
+
+  <script src="./Utils/trackball-rotator.js"></script>
+  <script src="./Utils/m4.js"></script>
+  <script src="./shader.gpu"></script>
+  <script src="./main.js"></script>
+  <script src="./constants.js"></script>
+</head>
+<body onload="init()">
+  <div id="container">
+    <div id="canvas-holder">
+        <!-- I didn't realise this, but gifs of this size (1080*720) tend to be too big, up to 200mb. 
+        So I left inputs on right but made canvas smaller (360*240) to create an illusion of big screen  -->
+      <canvas width="360" height="240" id="webglcanvas" style="background-color:red"></canvas>
+    </div>
+
+
+    <div id="inputs">
+        <h2>Virich cyclic surface</h2>
+        <p id="message">Drag your mouse on the figure to rotate it.<br>
+        (On a touch screen, you can use your finger.)</p>
+        
+        <!-- <label for="textureScaleU">Texture scale U:</label>
+        <input id="textureScaleU" value="1" type="range" min="1" max="2" step="0.1" onchange="reDraw()" />
+        <br>
+        <label for="textureScaleV">Texture scale V:</label>
+        <input id="textureScaleV" value="1" type="range" min="1" max="2" step="0.1" onchange="reDraw()" />
+        <br> -->
+      <label for="eyeSeparation">Eye Separation:</label>
+      <input id="eyeSeparation" value="70" type="range" min="0" max="200" step="2" onchange="reDraw()" />
+      <br>
+      <label for="fieldOfView">Field Of View:</label>
+      <input id="fieldOfView" value="0.8" type="range" min="0.01" max="3.14" step="0.01" onchange="reDraw()" />
+      <br>
+      <label for="nearClipping">Near Clipping:</label>
+      <input id="nearClipping" value="4.9" type="range" min="0" max="10" step="0.5" onchange="reDraw()" />
+      <br>
+      <label for="Convergence">Convergence:</label>
+      <input id="Convergence" value="2000" type="range" min="100" max="3000" step="100" onchange="reDraw()" />
+      <br>
+    </div>
+  </div>
+
+</body>
+</html>

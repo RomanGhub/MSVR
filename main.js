@@ -521,10 +521,13 @@ function CreateWebCamTexture() {
 
 //PA2
 function getRotationMatrix(alpha, beta, gamma) {
-
-  var _x = beta; // beta value
-  var _y = gamma; // gamma value
-  var _z = alpha; // alpha value
+  var degtorad = Math.PI / 180; // Degree-to-Radian conversion
+  var _x = beta  ? beta  * degtorad : 0; // beta value
+  var _y = gamma ? gamma * degtorad : 0; // gamma value
+  var _z = alpha ? alpha * degtorad : 0; // alpha value
+  // var _x = beta; // beta value
+  // var _y = gamma; // gamma value
+  // var _z = alpha; // alpha value
 
   var cX = Math.cos(_x);
   var cY = Math.cos(_y);
@@ -585,7 +588,7 @@ function compassHeading( alpha, beta, gamma ) {
     compassHeading += 2 * Math.PI;
   }
 
-  console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
+  // console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
   return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
 }
 
@@ -602,9 +605,9 @@ function compassHeading( alpha, beta, gamma ) {
 let magnetometerData;
 let magSensor = new Magnetometer({ frequency: 10 }); 
 magSensor.addEventListener("reading", (e) => {
-  console.log(`Magnetic field along the X-axis ${magSensor.x}`);
-  console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
-  console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
+  // console.log(`Magnetic field along the X-axis ${magSensor.x}`);
+  // console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
+  // console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
   const alpha = magSensor.x;
   const beta = magSensor.y;
   const gamma = magSensor.z;
@@ -623,7 +626,7 @@ function calculateSurfaceRotation() {
   if (magnetometerData != null) {
     // Calculate rotation
     let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
-    console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
+    // console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
 
     return rotationData;
   }

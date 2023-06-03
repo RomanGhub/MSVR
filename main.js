@@ -181,8 +181,8 @@ function draw() {
 
   let matAccumRotate0 = m4.multiply(rotateToPointZero, modelView);
   if(calculateSurfaceRotation() != null){
-    console.log("matAccum0 is calculateSurfaceRotation - " + calculateSurfaceRotation())
-    matAccumRotate0 = m4.multiply(rotateToPointZero, getRotationMatrix(0, 0, calculateSurfaceRotation()) );
+    // console.log("matAccum0 is calculateSurfaceRotation - " + calculateSurfaceRotation())
+    matAccumRotate0 = m4.multiply(rotateToPointZero, calculateSurfaceRotation() );
   }
   let matAccumTrans0 = m4.multiply(translateToPointZero, matAccumRotate0);
 
@@ -561,36 +561,36 @@ function getRotationMatrix(alpha, beta, gamma) {
 };
 var degtorad = Math.PI / 180; // Degree-to-Radian conversion
 
-function compassHeading( alpha, beta, gamma ) {
+  /* This function is for deviceOrientation event when holding device verticaly
+  It doesn't work right, instead I need this Math.atan2(beta, alpha) * (180 / Math.PI) -90; */
+  // references - https://www.w3.org/TR/magnetometer/#compass
+  // https://stackoverflow.com/questions/4308262/calculate-compass-bearing-heading-to-location-in-android
+// function compassHeading( alpha, beta, gamma ) {
 
-  var _x = beta  ? beta  * degtorad : 0; // beta value
-  var _y = gamma ? gamma * degtorad : 0; // gamma value
-  var _z = alpha ? alpha * degtorad : 0; // alpha value
+//   var _x = beta  ? beta  * degtorad : 0; // beta value
+//   var _y = gamma ? gamma * degtorad : 0; // gamma value
+//   var _z = alpha ? alpha * degtorad : 0; // alpha value
 
-  var cX = Math.cos( _x );
-  var cY = Math.cos( _y );
-  var cZ = Math.cos( _z );
-  var sX = Math.sin( _x );
-  var sY = Math.sin( _y );
-  var sZ = Math.sin( _z );
-
-  // Calculate Vx and Vy components
-  var Vx = - cZ * sY - sZ * sX * cY;
-  var Vy = - sZ * sY + cZ * sX * cY;
-
-  // Calculate compass heading
-  var compassHeading = Math.atan( Vx / Vy );
-
-  // Convert compass heading to use whole unit circle
-  if( Vy < 0 ) {
-    compassHeading += Math.PI;
-  } else if( Vx < 0 ) {
-    compassHeading += 2 * Math.PI;
-  }
-
-  // console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
-  return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
-}
+//   var cX = Math.cos( _x );
+//   var cY = Math.cos( _y );
+//   var cZ = Math.cos( _z );
+//   var sX = Math.sin( _x );
+//   var sY = Math.sin( _y );
+//   var sZ = Math.sin( _z );
+//   // Calculate Vx and Vy components
+//   var Vx = - cZ * sY - sZ * sX * cY;
+//   var Vy = - sZ * sY + cZ * sX * cY;
+//   // Calculate compass heading
+//   var compassHeading = Math.atan( Vx / Vy );
+//   // Convert compass heading to use whole unit circle
+//   if( Vy < 0 ) {
+//     compassHeading += Math.PI;
+//   } else if( Vx < 0 ) {
+//     compassHeading += 2 * Math.PI;
+//   }
+//   // console.log("This is compassHeading() function. Return value: " + compassHeading * ( 180 / Math.PI ))
+//   return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
+// }
 
 
 // let accelerometerData;
@@ -610,8 +610,8 @@ magSensor.addEventListener("reading", (e) => {
   // console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
   const alpha = magSensor.x;
   const beta = magSensor.y;
-  const gamma = magSensor.z;
-  magnetometerData = [alpha, beta, gamma];
+  // const gamma = magSensor.z;
+  magnetometerData = [alpha, beta]; //, gamma
 });
 magSensor.start();
 //// Just in case my variant is 1 and not 2
@@ -625,9 +625,10 @@ function calculateSurfaceRotation() {
   console.log("Its calculateSurfaceRotation function. magnetometerData = " + magnetometerData)
   if (magnetometerData != null) {
     // Calculate rotation
-    let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
-    // console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
+    let rotationData =  Math.atan2(magnetometerData[1], magnetometerData[0]) * (180 / Math.PI) -90;
+    // let rotationData = compassHeading(magnetometerData[0], magnetometerData[1], magnetometerData[2]);
+    console.log("Its calculateSurfaceRotation function. Rotation value: " + rotationData);
 
-    return rotationData;
+    return getRotationMatrix(rotationData);
   }
 }
